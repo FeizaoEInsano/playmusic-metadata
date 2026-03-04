@@ -1,0 +1,13 @@
+{
+  "name": "playmusic-metadata",
+  "version": "1.0.0",
+  "description": "Metadata server for PlayMusic Guadalajara",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "icy": "^2.1.0"
+  }
+}
