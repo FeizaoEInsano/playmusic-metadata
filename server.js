@@ -1,26 +1,32 @@
 const express = require('express');
-const fetch = require('node-fetch');
+const EventSource = require('eventsource');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const MOUNT_ID = "9y6f68ssq0hvv";
 
-let currentTitle = "Cargando...";
+let currentTitle = "Conectando...";
 
-async function connectToZeno() {
+function connectToZeno() {
   const url = `https://api.zeno.fm/mounts/metadata/subscribe/${MOUNT_ID}`;
-  const response = await fetch(url);
+  const es = new EventSource(url);
 
-  response.body.on('data', chunk => {
-    const text = chunk.toString();
-    const match = text.match(/streamTitle":"([^"]+)"/);
+  es.onmessage = function(event) {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.streamTitle) {
+        currentTitle = data.streamTitle;
+        console.log("Now Playing:", currentTitle);
+      }
+    } catch (err) {}
+  };
 
-    if (match && match[1]) {
-      currentTitle = match[1];
-      console.log("Now Playing:", currentTitle);
-    }
-  });
+  es.onerror = function(err) {
+    console.log("Error en conexión SSE, reintentando...");
+    es.close();
+    setTimeout(connectToZeno, 5000);
+  };
 }
 
 connectToZeno();
