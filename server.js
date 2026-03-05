@@ -5,28 +5,37 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const STREAM_URL = "https://stream.zeno.fm/9y6f68ssq0hvv";
 
-let currentTitle = "Cargando...";
+let currentTitle = "Conectando...";
 
 function connectToStream() {
-    icy.get(STREAM_URL, function (response) {
+    const req = icy.get(STREAM_URL, {
+        headers: { "Icy-MetaData": "1" }
+    }, function (response) {
 
         response.on('metadata', function (metadata) {
             const parsed = icy.parse(metadata);
             const title = parsed.StreamTitle;
 
-            if (title && title !== currentTitle) {
+            if (title) {
                 console.log("Now Playing:", title);
                 currentTitle = title;
             }
         });
 
-        response.on('error', function () {
-            console.log("Stream error. Reconnecting in 10s...");
-            setTimeout(connectToStream, 10000);
+        response.on('end', function () {
+            console.log("Stream ended. Reconnecting...");
+            setTimeout(connectToStream, 5000);
         });
-    }).on('error', function () {
-        console.log("Connection failed. Reconnecting in 10s...");
-        setTimeout(connectToStream, 10000);
+
+        response.on('error', function () {
+            console.log("Stream error. Reconnecting...");
+            setTimeout(connectToStream, 5000);
+        });
+    });
+
+    req.on('error', function () {
+        console.log("Connection failed. Reconnecting...");
+        setTimeout(connectToStream, 5000);
     });
 }
 
