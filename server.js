@@ -1,5 +1,4 @@
 const express = require('express');
-const express = require('express');
 const icy = require('icy');
 
 const app = express();
@@ -31,7 +30,6 @@ function connectToStream() {
     });
 }
 
-// Conectarse una sola vez al iniciar
 connectToStream();
 
 app.get('/nowplaying', (req, res) => {
